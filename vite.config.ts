@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -32,10 +33,17 @@ export default defineConfig(({ mode }) => ({
         manualChunks: undefined,
       },
     },
-    // Ensure proper handling of all routes
     sourcemap: true,
   },
-  // Add proper error handling
+  // Ensure history API fallback for SPA routing
+  preview: {
+    port: 8080,
+    strictPort: true,
+    host: true,
+    headers: {
+      'Cache-Control': 'no-store',
+    }
+  },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
   },

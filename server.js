@@ -1,54 +1,47 @@
+
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { createServer } from 'vite';
+import { createServer as createViteServer } from 'vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 
 async function createServer() {
   const app = express();
-
-  if (isProduction) {
-    // Serve static files from the dist directory in production
-    app.use(express.static(join(__dirname, 'dist')));
-  } else {
+  
+  let vite;
+  if (!isProduction) {
     // In development, use Vite's dev server
-    const vite = await createServer({
+    vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'custom'
+      appType: 'spa'
     });
     app.use(vite.middlewares);
+  } else {
+    // In production, serve static files from the dist directory
+    app.use(express.static(join(__dirname, 'dist')));
   }
 
-  // Handle all routes
-  app.use('*', async (req, res) => {
-    try {
-      const url = req.originalUrl;
-      
-      if (isProduction) {
-        // In production, serve the index.html file
-        res.sendFile(join(__dirname, 'dist', 'index.html'));
-      } else {
-        // In development, let Vite handle the request
-        const html = await vite.transformIndexHtml(url, '');
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
-      }
-    } catch (e) {
-      // If an error occurs, let Vite fix the stack trace
-      vite.ssrFixStacktrace(e);
-      console.error(e);
-      res.status(500).end(e.message);
+  // Handle all routes by serving the index.html
+  app.get('*', (req, res) => {
+    if (isProduction) {
+      // In production, send the index.html file
+      res.sendFile(join(__dirname, 'dist', 'index.html'));
+    } else {
+      // In development, let Vite transform and serve the index.html
+      res.sendFile(join(__dirname, 'index.html'));
     }
   });
 
   const PORT = process.env.PORT || 8080;
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running at http://localhost:${PORT}`);
   });
 }
 
-createServer(); 
+createServer().catch((err) => {
+  console.error('Error starting server:', err);
+});
