@@ -144,8 +144,8 @@ const Contact = () => {
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <Phone className="h-5 w-5 mr-3 text-brand-purple" />
-                    <a href="tel:+256706851115" className="text-gray-600 hover:text-brand-purple">
-                      +256 706 851 115
+                    <a href="tel:+256703571358" className="text-gray-600 hover:text-brand-purple">
+                      +256 703 571 358
                     </a>
                   </div>
                   
