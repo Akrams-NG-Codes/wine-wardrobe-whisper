@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -26,12 +25,19 @@ async function createServer() {
   }
 
   // Handle all routes by serving the index.html
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
+    const url = req.originalUrl;
+    
+    // Skip API routes and static files
+    if (url.startsWith('/api/') || url.includes('.')) {
+      return next();
+    }
+
     if (isProduction) {
       // In production, send the index.html file
       res.sendFile(join(__dirname, 'dist', 'index.html'));
     } else {
-      // In development, let Vite transform and serve the index.html
+      // In development, let Vite handle the request
       res.sendFile(join(__dirname, 'index.html'));
     }
   });
@@ -44,4 +50,5 @@ async function createServer() {
 
 createServer().catch((err) => {
   console.error('Error starting server:', err);
+  process.exit(1);
 });
