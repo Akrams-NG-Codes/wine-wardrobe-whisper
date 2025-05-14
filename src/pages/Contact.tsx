@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
@@ -165,7 +164,7 @@ const Contact = () => {
                   Chat with us directly on WhatsApp for quick assistance.
                 </p>
                 <WhatsAppButton
-                  phoneNumber="256706851115"
+                  phoneNumber="0703571358"
                   message="Hello! I have a question about Allan Wine Clothing."
                 />
               </div>

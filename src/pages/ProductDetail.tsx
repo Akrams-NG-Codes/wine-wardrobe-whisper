@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProductById, getBestSellers } from "@/data/products";
@@ -229,7 +228,7 @@ const ProductDetail = () => {
               </Button>
               
               <WhatsAppButton
-                phoneNumber="256706851115"
+                phoneNumber="0703571358"
                 message={generateWhatsAppMessage()}
                 className="flex-1"
               />

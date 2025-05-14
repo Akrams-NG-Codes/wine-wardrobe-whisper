@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { X, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
@@ -137,7 +136,7 @@ const CartSidebar = ({ isOpen, onClose }: CartSidebarProps) => {
             </div>
             
             <WhatsAppButton 
-              phoneNumber="256706851115"
+              phoneNumber="0703571358"
               message={generateWhatsAppMessage()}
               className="w-full"
             />
