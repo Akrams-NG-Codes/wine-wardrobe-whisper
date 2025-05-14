@@ -1,14 +1,44 @@
 
+import { useEffect, useState } from "react";
 import HeroSection from "@/components/home/HeroSection";
 import ProductSection from "@/components/home/ProductSection";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import NewsletterSection from "@/components/home/NewsletterSection";
 import { getNewArrivals, getBestSellers } from "@/data/products";
+import { Product } from "@/context/CartContext";
 
 const Index = () => {
-  const newArrivals = getNewArrivals();
-  const bestSellers = getBestSellers();
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [bestSellers, setBestSellers] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setIsLoading(true);
+      try {
+        const arrivals = await getNewArrivals();
+        const sellers = await getBestSellers();
+        
+        setNewArrivals(arrivals);
+        setBestSellers(sellers);
+      } catch (error) {
+        console.error("Error loading products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProducts();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-gray-600">Loading products...</p>
+      </div>
+    );
+  }
 
   return (
     <main>

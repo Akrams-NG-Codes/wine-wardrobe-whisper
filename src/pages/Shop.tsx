@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PRODUCTS, fetchProducts, Product } from "@/data/products";
+import { PRODUCTS, fetchProducts } from "@/data/products";
+import { Product } from "@/context/CartContext"; // Import Product from CartContext
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";

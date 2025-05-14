@@ -306,7 +306,7 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
 };
 
 // Helper function to filter products by gender
-export const getProductsByGender = async (gender: string): Promise<Product[]> => {
+export const getProductsByGender = async (gender: Database["public"]["Enums"]["gender"]): Promise<Product[]> => {
   try {
     const { data: products, error } = await supabase
       .from('products')

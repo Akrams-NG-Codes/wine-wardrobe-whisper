@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PRODUCTS } from "@/data/products";
+import { Database } from "@/integrations/supabase/types";
 
 /**
  * This utility function migrates the static product data to Supabase.
@@ -39,6 +40,9 @@ export const migrateProductsToSupabase = async () => {
         continue;
       }
 
+      // Ensure gender is a valid enum value
+      const gender = product.gender as Database["public"]["Enums"]["gender"];
+      
       // Insert product
       const { data: newProduct, error } = await supabase
         .from('products')
@@ -47,7 +51,7 @@ export const migrateProductsToSupabase = async () => {
           price: product.price,
           description: product.description || '',
           image: product.image,
-          gender: product.gender,
+          gender: gender,
           category_id: categoryId
         })
         .select()

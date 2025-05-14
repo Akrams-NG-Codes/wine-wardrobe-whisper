@@ -5,13 +5,26 @@ import { getProductsByGender } from "@/data/products";
 import ProductSection from "@/components/home/ProductSection";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/context/CartContext";
+import { Database } from "@/integrations/supabase/types";
 
 const Men = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const mensProducts = getProductsByGender("men");
-    setProducts(mensProducts);
+    const loadProducts = async () => {
+      setIsLoading(true);
+      try {
+        const mensProducts = await getProductsByGender("men" as Database["public"]["Enums"]["gender"]);
+        setProducts(mensProducts);
+      } catch (error) {
+        console.error("Error loading men's products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProducts();
   }, []);
   
   // Group products by category
@@ -23,6 +36,14 @@ const Men = () => {
   const trousers = getProductsByCategory("trousers");
   const tShirts = getProductsByCategory("t-shirts");
   const jumpers = getProductsByCategory("jumpers");
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-gray-600">Loading products...</p>
+      </div>
+    );
+  }
 
   return (
     <main>
