@@ -39,9 +39,6 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     strictPort: true,
     host: true,
-    headers: {
-      'Cache-Control': 'no-store',
-    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
