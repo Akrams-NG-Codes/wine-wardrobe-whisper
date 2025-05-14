@@ -1,5 +1,7 @@
 
 import { Product } from "@/context/CartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 export const PRODUCTS: Product[] = [
   // Men's Products
@@ -139,28 +141,237 @@ export const PRODUCTS: Product[] = [
   }
 ];
 
+// Helper functions using Supabase
+
+/**
+ * Fetch all products from Supabase
+ */
+export const fetchProducts = async (): Promise<Product[]> => {
+  try {
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `);
+    
+    if (error) {
+      console.error('Error fetching products:', error);
+      return PRODUCTS; // Fallback to static data
+    }
+
+    if (!products || products.length === 0) {
+      return PRODUCTS; // Fallback to static data
+    }
+
+    // Transform the data to match our Product interface
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    }));
+  } catch (error) {
+    console.error('Error in fetchProducts:', error);
+    return PRODUCTS; // Fallback to static data
+  }
+};
+
 // Helper function to get new arrivals (most recent 6 products)
-export const getNewArrivals = (): Product[] => {
-  return [...PRODUCTS].slice(0, 6);
+export const getNewArrivals = async (): Promise<Product[]> => {
+  try {
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(6);
+    
+    if (error || !products || products.length === 0) {
+      return PRODUCTS.slice(0, 6); // Fallback to static data
+    }
+
+    // Transform the data
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    }));
+  } catch (error) {
+    console.error('Error in getNewArrivals:', error);
+    return PRODUCTS.slice(0, 6); // Fallback to static data
+  }
 };
 
 // Helper function to get best sellers (random selection of 6 products)
-export const getBestSellers = (): Product[] => {
-  const shuffled = [...PRODUCTS].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 6);
+export const getBestSellers = async (): Promise<Product[]> => {
+  try {
+    // In a real app, this would be based on order counts or ratings
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `)
+      .limit(6);
+    
+    if (error || !products || products.length === 0) {
+      // Fallback to static data
+      const shuffled = [...PRODUCTS].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, 6);
+    }
+
+    // Transform the data
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    }));
+  } catch (error) {
+    console.error('Error in getBestSellers:', error);
+    // Fallback to static data
+    const shuffled = [...PRODUCTS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 6);
+  }
 };
 
 // Helper function to filter products by category
-export const getProductsByCategory = (category: string): Product[] => {
-  return PRODUCTS.filter(product => product.category === category);
+export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+  try {
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', category)
+      .single();
+    
+    if (categoryError || !categoryData) {
+      return PRODUCTS.filter(product => product.category === category);
+    }
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `)
+      .eq('category_id', categoryData.id);
+    
+    if (error || !products || products.length === 0) {
+      return PRODUCTS.filter(product => product.category === category);
+    }
+
+    // Transform the data
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    }));
+  } catch (error) {
+    console.error('Error in getProductsByCategory:', error);
+    return PRODUCTS.filter(product => product.category === category);
+  }
 };
 
 // Helper function to filter products by gender
-export const getProductsByGender = (gender: string): Product[] => {
-  return PRODUCTS.filter(product => product.gender === gender);
+export const getProductsByGender = async (gender: string): Promise<Product[]> => {
+  try {
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `)
+      .eq('gender', gender);
+    
+    if (error || !products || products.length === 0) {
+      return PRODUCTS.filter(product => product.gender === gender);
+    }
+
+    // Transform the data
+    return products.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    }));
+  } catch (error) {
+    console.error('Error in getProductsByGender:', error);
+    return PRODUCTS.filter(product => product.gender === gender);
+  }
 };
 
 // Helper function to get a product by ID
-export const getProductById = (id: string): Product | undefined => {
-  return PRODUCTS.find(product => product.id === id);
+export const getProductById = async (id: string): Promise<Product | undefined> => {
+  try {
+    const { data: product, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories:category_id(name, slug),
+        product_sizes(size),
+        product_colors(color)
+      `)
+      .eq('id', id)
+      .single();
+    
+    if (error || !product) {
+      return PRODUCTS.find(p => p.id === id);
+    }
+
+    // Transform the data
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      category: product.categories?.slug || '',
+      gender: product.gender,
+      description: product.description || '',
+      sizes: product.product_sizes?.map(s => s.size) || [],
+      colors: product.product_colors?.map(c => c.color) || [],
+    };
+  } catch (error) {
+    console.error('Error in getProductById:', error);
+    return PRODUCTS.find(p => p.id === id);
+  }
 };

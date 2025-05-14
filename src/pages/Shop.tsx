@@ -1,14 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PRODUCTS, Product } from "@/data/products";
+import { PRODUCTS, fetchProducts, Product } from "@/data/products";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Filter state
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -16,7 +18,7 @@ const Shop = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
   
   // Get unique categories from products
-  const categories = Array.from(new Set(PRODUCTS.map(p => p.category)));
+  const categories = Array.from(new Set(products.map(p => p.category)));
   
   useEffect(() => {
     // Get category from URL params
@@ -31,7 +33,26 @@ const Shop = () => {
       setSelectedGender(genderFromURL);
     }
     
-    setProducts(PRODUCTS);
+    // Fetch products from Supabase
+    const loadProducts = async () => {
+      setIsLoading(true);
+      try {
+        const productsData = await fetchProducts();
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load products. Using demo data instead.",
+          variant: "destructive",
+        });
+        setProducts(PRODUCTS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProducts();
   }, [searchParams]);
   
   useEffect(() => {
@@ -216,7 +237,11 @@ const Shop = () => {
           
           {/* Product Grid */}
           <div className="md:w-3/4">
-            {filteredProducts.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-16">
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-16">
                 <h3 className="text-xl font-medium mb-4">No products found</h3>
                 <p className="text-gray-500 mb-6">Try changing your filters to find products.</p>

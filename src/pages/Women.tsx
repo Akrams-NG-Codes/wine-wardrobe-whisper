@@ -1,28 +1,54 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getProductsByGender } from "@/data/products";
+import { getProductsByGender, getProductsByCategory } from "@/data/products";
 import ProductSection from "@/components/home/ProductSection";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/context/CartContext";
+import { toast } from "@/components/ui/use-toast";
 
 const Women = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsByCategory, setProductsByCategory] = useState<{
+    [key: string]: Product[];
+  }>({});
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const womensProducts = getProductsByGender("women");
-    setProducts(womensProducts);
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Fetch women's products
+        const womensProducts = await getProductsByGender("women");
+        setProducts(womensProducts);
+        
+        // Group by category
+        const shirts = womensProducts.filter(p => p.category === "shirts");
+        const trousers = womensProducts.filter(p => p.category === "trousers");
+        const tShirts = womensProducts.filter(p => p.category === "t-shirts");
+        const jumpers = womensProducts.filter(p => p.category === "jumpers");
+        
+        setProductsByCategory({
+          shirts,
+          trousers,
+          "t-shirts": tShirts,
+          jumpers
+        });
+      } catch (error) {
+        console.error("Error fetching women's products:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load women's products.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProducts();
   }, []);
-  
-  // Group products by category
-  const getProductsByCategory = (category: string) => {
-    return products.filter(p => p.category === category);
-  };
-  
-  const shirts = getProductsByCategory("shirts");
-  const trousers = getProductsByCategory("trousers");
-  const tShirts = getProductsByCategory("t-shirts");
-  const jumpers = getProductsByCategory("jumpers");
 
   return (
     <main>
@@ -98,38 +124,45 @@ const Women = () => {
         </div>
       </div>
       
+      {/* Loading state */}
+      {isLoading && (
+        <div className="container py-8 text-center">
+          <p className="text-gray-500">Loading products...</p>
+        </div>
+      )}
+      
       {/* Product Sections by Category */}
-      {shirts.length > 0 && (
+      {!isLoading && productsByCategory.shirts?.length > 0 && (
         <ProductSection 
           title="Shirts & Blouses" 
-          products={shirts}
+          products={productsByCategory.shirts}
           viewAllLink="/shop?gender=women&category=shirts"
           limit={4}
         />
       )}
       
-      {trousers.length > 0 && (
+      {!isLoading && productsByCategory.trousers?.length > 0 && (
         <ProductSection 
           title="Trousers" 
-          products={trousers}
+          products={productsByCategory.trousers}
           viewAllLink="/shop?gender=women&category=trousers"
           limit={4}
         />
       )}
       
-      {tShirts.length > 0 && (
+      {!isLoading && productsByCategory["t-shirts"]?.length > 0 && (
         <ProductSection 
           title="T-Shirts" 
-          products={tShirts}
+          products={productsByCategory["t-shirts"]}
           viewAllLink="/shop?gender=women&category=t-shirts"
           limit={4}
         />
       )}
       
-      {jumpers.length > 0 && (
+      {!isLoading && productsByCategory.jumpers?.length > 0 && (
         <ProductSection 
           title="Jumpers & Sweaters" 
-          products={jumpers}
+          products={productsByCategory.jumpers}
           viewAllLink="/shop?gender=women&category=jumpers"
           limit={4}
         />

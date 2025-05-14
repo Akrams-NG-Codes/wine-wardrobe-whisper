@@ -1,40 +1,64 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getProductById } from "@/data/products";
+import { getProductById, getBestSellers } from "@/data/products";
 import { useCart, Product } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import ProductSection from "@/components/home/ProductSection";
-import { getBestSellers } from "@/data/products";
+import { toast } from "@/components/ui/use-toast";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState(true);
   const { addToCart } = useCart();
   
-  // Get related products
-  const relatedProducts = getBestSellers().filter(p => p.id !== id);
-  
   useEffect(() => {
-    if (id) {
-      const foundProduct = getProductById(id);
-      setProduct(foundProduct || null);
+    const loadProduct = async () => {
+      if (!id) return;
       
-      // Set default selections
-      if (foundProduct) {
-        setSelectedSize(foundProduct.sizes?.[0] || "");
-        setSelectedColor(foundProduct.colors?.[0] || "");
+      setIsLoading(true);
+      
+      try {
+        const foundProduct = await getProductById(id);
+        setProduct(foundProduct || null);
+        
+        // Set default selections
+        if (foundProduct) {
+          setSelectedSize(foundProduct.sizes?.[0] || "");
+          setSelectedColor(foundProduct.colors?.[0] || "");
+        }
+        
+        // Get related products
+        const bestSellers = await getBestSellers();
+        setRelatedProducts(bestSellers.filter(p => p.id !== id));
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load product details.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+    
+    loadProduct();
   }, [id]);
   
   const handleAddToCart = () => {
     if (product) {
       addToCart(product, quantity, selectedSize, selectedColor);
+      toast({
+        title: "Added to Cart",
+        description: `${product.name} has been added to your cart.`,
+      });
     }
   };
   
@@ -54,6 +78,14 @@ const ProductDetail = () => {
     
     return encodeURIComponent(message);
   };
+  
+  if (isLoading) {
+    return (
+      <div className="container py-16 text-center">
+        <p className="text-gray-500">Loading product details...</p>
+      </div>
+    );
+  }
   
   if (!product) {
     return (

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
-import { PRODUCTS } from "@/data/products";
 import { Product } from "@/context/CartContext";
 
 interface ProductSectionProps {
@@ -22,18 +21,11 @@ const ProductSection = ({
   products: propProducts
 }: ProductSectionProps) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (propProducts) {
       setProducts(propProducts.slice(0, limit));
-    } else {
-      let filtered = [...PRODUCTS];
-      
-      if (category) {
-        filtered = filtered.filter(product => product.category === category);
-      }
-      
-      setProducts(filtered.slice(0, limit));
     }
   }, [category, limit, propProducts]);
 
@@ -49,11 +41,17 @@ const ProductSection = ({
           </Link>
         </div>
         
-        <div className="product-grid">
-          {products.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Loading products...</p>
+          </div>
+        ) : (
+          <div className="product-grid">
+            {products.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
