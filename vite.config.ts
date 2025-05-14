@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    strictPort: true,
+    hmr: {
+      port: 8080
+    }
   },
   plugins: [
     react(),
@@ -21,10 +25,18 @@ export default defineConfig(({ mode }) => ({
   },
   base: '/',
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
         manualChunks: undefined,
       },
     },
+    // Ensure proper handling of all routes
+    sourcemap: true,
+  },
+  // Add proper error handling
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
   },
 }));
